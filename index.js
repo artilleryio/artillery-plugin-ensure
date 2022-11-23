@@ -71,7 +71,7 @@ class EnsurePlugin {
     const vars = Object.assign({}, data.report.counters, data.report.rates);
     for(const [name, values] of Object.entries(data.report.summaries || {})) {
       for(const [aggregation, value] of Object.entries(values)) {
-        vars[`${name}.${aggregation}`] = value;
+        vars[`${EnsurePlugin.sanitizeName(name)}.${aggregation}`] = value;
       }
     }
 
@@ -87,7 +87,7 @@ class EnsurePlugin {
         if (typeof o === 'object') {
           const metricName = Object.keys(o)[0]; // only one metric check per array entry
           const maxValue = o[metricName];
-          const expr = `${metricName} < ${maxValue}`;
+          const expr = `${EnsurePlugin.sanitizeName(metricName)} < ${maxValue}`;
           let f = () => {};
           try {
             f = filtrex(expr);
@@ -158,6 +158,11 @@ class EnsurePlugin {
       debug(`check ${check.original} -> ${result}`);
     });
     return checkTests;
+  }
+
+  static sanitizeName(varName) {
+    if(typeof varName !== 'string') return varName
+    return varName.replaceAll('-', '_')
   }
 }
 
